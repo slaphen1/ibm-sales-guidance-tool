@@ -1,0 +1,28 @@
+# IBM Cloud Code Engine — Deployment Manifest
+# Reference: https://cloud.ibm.com/docs/codeengine
+#
+# This file documents the Code Engine application configuration.
+# Apply via the IBM Cloud CLI commands in deploy.sh or the Code Engine console.
+
+app:
+  name: ibm-sales-guidance-tool
+  # IBM Container Registry image — update with your ICR namespace
+  image: icr.io/<YOUR_ICR_NAMESPACE>/sales-guidance-tool:latest
+  # Port the Next.js app listens on
+  port: 3000
+  # Minimum instances (0 = scale to zero when idle — cost efficient)
+  min-scale: 0
+  # Maximum instances
+  max-scale: 5
+  # CPU and memory per instance
+  cpu: "0.5"
+  memory: 1G
+  # Request timeout (roadmap generation can take 30-60s)
+  timeout: 120
+
+  # Environment variables — set as Code Engine secrets (not plain text)
+  # Run: ibmcloud ce secret create --name sales-guidance-secrets --from-env-file .env
+  env-from-secret: sales-guidance-secrets
+
+  # Concurrency per instance
+  concurrency: 10
