@@ -95,7 +95,9 @@ export async function sendStatelessMessage(
   const body = {
     input: {
       message_type: "text",
-      text: message,
+      // Watson Assistant /environments/{id}/message rejects tabs, newlines, and
+      // carriage returns in input.text — collapse whitespace to single spaces.
+      text: message.replace(/[\t\n\r]+/g, " ").trim(),
     },
     context: buildContext(sellerEmail, deal),
     user_id: sellerEmail,
