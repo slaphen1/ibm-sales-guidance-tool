@@ -24,6 +24,14 @@ export default async function handler(
   const watsonUrl = `${BASE_URL}/v2/assistants/${ASSISTANT_ID}/environments/${ENVIRONMENT_ID}/message?version=${VERSION}`;
   const auth = `Basic ${Buffer.from(`apikey:${API_KEY}`).toString("base64")}`;
 
+  const ASKSALES_URL = process.env.ASKSALES_API_URL ?? "";
+  const ASKSALES_KEY = process.env.ASKSALES_API_KEY ?? "";
+  const askSalesEnabled =
+    !!ASKSALES_URL &&
+    ASKSALES_URL !== "https://asksales.ibm.com/api/v1" &&
+    !!ASKSALES_KEY &&
+    ASKSALES_KEY !== "your-asksales-api-key";
+
   const results: Record<string, unknown> = {
     env: {
       hasApiKey: !!API_KEY && API_KEY !== "your-watson-assistant-api-key",
@@ -32,6 +40,14 @@ export default async function handler(
       environmentId: ENVIRONMENT_ID || "NOT SET",
       version: VERSION,
       baseUrl: BASE_URL,
+    },
+    asksales: {
+      enabled: askSalesEnabled,
+      url: ASKSALES_URL || "NOT SET",
+      hasKey: !!ASKSALES_KEY && ASKSALES_KEY !== "your-asksales-api-key",
+      note: askSalesEnabled
+        ? "Real credentials configured"
+        : "Placeholder credentials — AskSales queries return empty results (non-fatal)",
     },
   };
 
