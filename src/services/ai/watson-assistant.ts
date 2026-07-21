@@ -1,6 +1,7 @@
 import type { Deal } from "@/types";
 
 const ASSISTANT_ID: string = process.env.WATSON_ASSISTANT_ID ?? "";
+const ENVIRONMENT_ID: string = process.env.WATSON_ASSISTANT_ENVIRONMENT_ID ?? "4ec3f873-5e08-4a8f-b7d4-dd528622e808";
 const API_KEY: string = process.env.WATSON_ASSISTANT_API_KEY ?? "";
 // Version confirmed from official curl sample
 const VERSION: string = process.env.WATSON_ASSISTANT_VERSION ?? "2024-08-25";
@@ -162,7 +163,7 @@ export async function sendStatelessMessage(
   sellerEmail: string,
   deal?: Deal
 ): Promise<string> {
-  const url = `${MESSAGE_BASE_URL}/v2/assistants/${ASSISTANT_ID}/message?version=${VERSION}`;
+  const url = `${MESSAGE_BASE_URL}/v2/assistants/${ASSISTANT_ID}/environments/${ENVIRONMENT_ID}/message?version=${VERSION}`;
 
   const body = {
     input: {
