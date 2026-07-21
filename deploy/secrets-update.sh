@@ -49,11 +49,14 @@ if [[ $# -eq 2 ]]; then
   SECRET_VALUE="$2"
 elif [[ $# -eq 0 ]]; then
   echo "  Available keys (common):"
-  echo "    WATSON_ASSISTANT_API_KEY"
-  echo "    WATSON_ASSISTANT_ENVIRONMENT_ID"
-  echo "    WATSON_ASSISTANT_VERSION"
-  echo "    ASKSALES_API_KEY"
-  echo "    AI_API_KEY"
+  echo "    WATSON_ASSISTANT_API_KEY         Required — chat and roadmap"
+  echo "    WATSON_ASSISTANT_ENVIRONMENT_ID  Draft: 4ec3f873 / Prod: cea0be1c"
+  echo "    WATSON_ASSISTANT_VERSION         Must be 2024-08-25"
+  echo "    ASKSALES_API_URL                 Must NOT be the placeholder value"
+  echo "    ASKSALES_API_KEY                 IBM AskSales API key"
+  echo "    ASKSALES_CLIENT_ID               IBM AskSales client ID"
+  echo "    ASKSALES_CLIENT_SECRET           IBM AskSales client secret"
+  echo "    AI_API_KEY                       WatsonX.ai key (for /guidance)"
   echo ""
   read -r -p "  Key to update: " SECRET_KEY
   read -r -s -p "  New value:     " SECRET_VALUE

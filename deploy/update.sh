@@ -125,7 +125,14 @@ if [[ "${HTTP_CODE}" == "200" ]]; then
   WATSON_MS=$(python3 -c \
     "import json; d=json.load(open('/tmp/diag_response.json')); print(d.get('watson',{}).get('ms','?'))" \
     2>/dev/null || echo "?")
-  success "Smoke test passed — Watson reachable: ${WATSON_OK} (${WATSON_MS}ms)"
+  ASKSALES_ENABLED=$(python3 -c \
+    "import json; d=json.load(open('/tmp/diag_response.json')); print('YES' if d.get('asksales',{}).get('enabled') else 'NO')" \
+    2>/dev/null || echo "?")
+  success "Smoke test passed"
+  echo "    Watson reachable : ${WATSON_OK} (${WATSON_MS}ms)"
+  echo "    AskSales enabled : ${ASKSALES_ENABLED}"
+  [[ "${ASKSALES_ENABLED}" == "NO" ]] && \
+    warn "AskSales credentials are placeholder values — roadmap runs on Watson alone."
 else
   warn "Smoke test returned HTTP ${HTTP_CODE} — app may still be cold-starting"
   warn "Check: ${APP_URL}/api/diag"

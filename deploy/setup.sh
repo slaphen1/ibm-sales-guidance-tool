@@ -366,11 +366,21 @@ if [[ "${DIAG_STATUS}" == "ok" ]]; then
   HAS_KEY=$(echo "${DIAG_BODY}" | python3 -c \
     "import sys,json; d=json.load(sys.stdin); print('YES' if d.get('env',{}).get('hasApiKey') else 'NO')" \
     2>/dev/null || echo "UNKNOWN")
+  ASKSALES_ENABLED=$(echo "${DIAG_BODY}" | python3 -c \
+    "import sys,json; d=json.load(sys.stdin); print('YES' if d.get('asksales',{}).get('enabled') else 'NO')" \
+    2>/dev/null || echo "UNKNOWN")
 
   success "Connectivity check passed"
-  echo "    API key set:          ${HAS_KEY}"
-  echo "    Watson reachable:     ${WATSON_OK}"
-  echo "    Watson response time: ${WATSON_MS}ms"
+  echo "    API key set          : ${HAS_KEY}"
+  echo "    Watson reachable     : ${WATSON_OK} (${WATSON_MS}ms)"
+  echo "    AskSales enabled     : ${ASKSALES_ENABLED}"
+
+  if [[ "${ASKSALES_ENABLED}" == "NO" ]]; then
+    warn "AskSales credentials are placeholder values."
+    warn "Roadmap will generate using Watson Assistant alone — this works, but"
+    warn "IBM AskSales content (playbooks, competitive intel) won't be included."
+    warn "To enable: run ./deploy/secrets-update.sh with real ASKSALES_* values."
+  fi
 else
   warn "Could not reach /api/diag after 3 attempts."
   warn "App may still be cold-starting. Visit ${APP_URL}/api/diag manually."
