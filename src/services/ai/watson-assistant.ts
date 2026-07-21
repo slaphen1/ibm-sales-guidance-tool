@@ -73,8 +73,10 @@ function extractText(output: { generic?: Array<Record<string, unknown>> }): stri
   );
 }
 
-/** Server-side timeout for Watson Assistant fetch calls */
+/** Default server-side timeout for short chat messages */
 const WATSON_TIMEOUT_MS = 30_000;
+/** Extended timeout for long roadmap prompts — exported for use in /api/roadmap */
+export const WATSON_ROADMAP_TIMEOUT_MS = 90_000;
 
 /**
  * Send a stateless message to Watson Assistant.
@@ -84,11 +86,13 @@ const WATSON_TIMEOUT_MS = 30_000;
  * @param message      - The user's message text
  * @param sellerEmail  - Seller's IBM email (required by AskSales skill)
  * @param deal         - Optional deal context
+ * @param timeoutMs    - Override timeout in ms (default: 30s; use WATSON_ROADMAP_TIMEOUT_MS for long prompts)
  */
 export async function sendStatelessMessage(
   message: string,
   sellerEmail: string,
-  deal?: Deal
+  deal?: Deal,
+  timeoutMs: number = WATSON_TIMEOUT_MS
 ): Promise<string> {
   const url = `${MESSAGE_BASE_URL}/v2/assistants/${ASSISTANT_ID}/environments/${ENVIRONMENT_ID}/message?version=${VERSION}`;
 
@@ -104,7 +108,7 @@ export async function sendStatelessMessage(
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), WATSON_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(url, {

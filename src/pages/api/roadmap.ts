@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { searchAskSales, getCompetitiveIntel } from "@/services/asksales/client";
-import { sendStatelessMessage } from "@/services/ai/watson-assistant";
+import { sendStatelessMessage, WATSON_ROADMAP_TIMEOUT_MS } from "@/services/ai/watson-assistant";
 import { generateRoadmapDocx } from "@/services/files/docx-export";
 import type { RoadmapRequest, RoadmapResponse, RoadmapSection, ParsedFile } from "@/types";
 
@@ -79,7 +79,7 @@ export default async function handler(
     );
 
     // 5. Send to Watson Assistant (Bob AI engine) for generation
-    const rawResponse = await sendStatelessMessage(prompt, sellerEmail);
+    const rawResponse = await sendStatelessMessage(prompt, sellerEmail, undefined, WATSON_ROADMAP_TIMEOUT_MS);
 
     // 5. Parse the structured sections from the AI response
     const sections = parseSections(rawResponse);
