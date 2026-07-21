@@ -1,13 +1,10 @@
 import axios from "axios";
-import getConfig from "next/config";
 import type { Deal } from "@/types";
 
-const { serverRuntimeConfig } = getConfig();
-
 const client = axios.create({
-  baseURL: serverRuntimeConfig.crmApiUrl,
+  baseURL: process.env.CRM_API_URL,
   headers: {
-    Authorization: `Bearer ${serverRuntimeConfig.crmApiKey}`,
+    Authorization: `Bearer ${process.env.CRM_API_KEY}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   },

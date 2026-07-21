@@ -1,22 +1,19 @@
 import { WatsonXAI } from "@ibm-cloud/watsonx-ai";
 import { IamAuthenticator } from "ibm-cloud-sdk-core";
-import getConfig from "next/config";
 import type { ChatMessage, Deal, Recommendation, AskSalesResult } from "@/types";
-
-const { serverRuntimeConfig } = getConfig();
 
 function getWatsonxClient() {
   return WatsonXAI.newInstance({
     version: "2024-05-31",
-    serviceUrl: serverRuntimeConfig.watsonxUrl,
+    serviceUrl: process.env.WATSONX_URL,
     authenticator: new IamAuthenticator({
-      apikey: serverRuntimeConfig.watsonxApiKey,
+      apikey: process.env.AI_API_KEY ?? "",
     }),
   });
 }
 
-const MODEL_ID = serverRuntimeConfig.watsonxModel ?? "ibm/granite-13b-chat-v2";
-const PROJECT_ID = serverRuntimeConfig.watsonxProjectId;
+const MODEL_ID = process.env.AI_MODEL ?? "ibm/granite-13b-chat-v2";
+const PROJECT_ID = process.env.WATSONX_PROJECT_ID;
 
 /**
  * Generate sales guidance recommendations from a deal and AskSales context.

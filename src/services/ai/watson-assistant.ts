@@ -1,17 +1,13 @@
-import getConfig from "next/config";
 import type { Deal } from "@/types";
 
-const { serverRuntimeConfig } = getConfig();
-
-const ASSISTANT_ID: string = serverRuntimeConfig.watsonAssistantId;
-const ENVIRONMENT_ID: string = serverRuntimeConfig.watsonAssistantEnvironmentId;
-const API_KEY: string = serverRuntimeConfig.watsonAssistantApiKey;
+const ASSISTANT_ID: string = process.env.WATSON_ASSISTANT_ID ?? "";
+const API_KEY: string = process.env.WATSON_ASSISTANT_API_KEY ?? "";
 // Version confirmed from official curl sample
-const VERSION: string = serverRuntimeConfig.watsonAssistantVersion ?? "2024-08-25";
+const VERSION: string = process.env.WATSON_ASSISTANT_VERSION ?? "2024-08-25";
 
 // Endpoint base — no .direct. in the message URL
 const MESSAGE_BASE_URL: string =
-  serverRuntimeConfig.watsonAssistantMessageUrl ??
+  process.env.WATSON_ASSISTANT_MESSAGE_URL ??
   "https://api.us-east-1.aws.watsonassistant.ibm.com/instances/20250911-1453-2217-006b-ed3d70a0da56";
 
 /**

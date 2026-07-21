@@ -1,13 +1,10 @@
 import axios from "axios";
-import getConfig from "next/config";
 import type { AskSalesResult } from "@/types";
 
-const { serverRuntimeConfig } = getConfig();
-
 const client = axios.create({
-  baseURL: serverRuntimeConfig.askSalesApiUrl,
+  baseURL: process.env.ASKSALES_API_URL,
   headers: {
-    Authorization: `Bearer ${serverRuntimeConfig.askSalesApiKey}`,
+    Authorization: `Bearer ${process.env.ASKSALES_API_KEY}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   },
