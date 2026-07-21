@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { ChatMessage, Deal } from "@/types";
 
 interface UseChatReturn {
@@ -8,6 +8,9 @@ interface UseChatReturn {
   sendMessage: (content: string, deal?: Deal, sellerEmail?: string) => Promise<void>;
   clearChat: () => void;
 }
+
+/** Client-side timeout for Watson Assistant calls (ms) */
+const REQUEST_TIMEOUT_MS = 45_000;
 
 /**
  * useChat — React hook for the AI sales guidance chatbot.
@@ -23,8 +26,6 @@ export function useChat(): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Persist the Watson Assistant session ID across turns without triggering re-renders
-  const sessionIdRef = useRef<string | undefined>(undefined);
 
   const sendMessage = useCallback(
     async (content: string, deal?: Deal, sellerEmail?: string) => {
@@ -40,47 +41,51 @@ export function useChat(): UseChatReturn {
       setLoading(true);
       setError(null);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: content,
-            deal,
-            sellerEmail,
-            sessionId: sessionIdRef.current, // carry session across turns
-          }),
+          body: JSON.stringify({ message: content, deal, sellerEmail }),
+          signal: controller.signal,
         });
-        const json = await res.json();
-        if (!res.ok) throw new Error((json as { error: string }).error ?? "Chat request failed");
 
-        const { message: assistantMessage, sessionId } = json as {
-          message: ChatMessage;
-          sessionId: string;
-        };
+        // Guard against non-JSON gateway error pages (e.g. Code Engine 502/504)
+        const text = await res.text();
+        let json: unknown;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          throw new Error(
+            res.ok
+              ? "Received an unexpected response from the server. Please try again."
+              : `Server error (${res.status}). Please try again.`
+          );
+        }
 
-        // Persist the session ID for the next turn
-        sessionIdRef.current = sessionId;
+        if (!res.ok) {
+          throw new Error((json as { error?: string }).error ?? "Chat request failed");
+        }
+
+        const { message: assistantMessage } = json as { message: ChatMessage };
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Chat request failed");
+        if (err instanceof Error && err.name === "AbortError") {
+          setError("The request timed out — Watson Assistant is taking too long. Please try again.");
+        } else {
+          setError(err instanceof Error ? err.message : "Chat request failed");
+        }
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     },
-    [] // no dependency on messages — session state is in a ref
+    []
   );
 
   const clearChat = useCallback(() => {
-    // Signal the backend to clean up the Watson Assistant session
-    if (sessionIdRef.current) {
-      fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "", sessionId: sessionIdRef.current, endSession: true }),
-      }).catch(() => {}); // fire-and-forget
-      sessionIdRef.current = undefined;
-    }
     setMessages([]);
     setError(null);
   }, []);
