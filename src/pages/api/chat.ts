@@ -43,6 +43,11 @@ export default async function handler(
     return res.status(200).json({ message: assistantMessage });
   } catch (err) {
     console.error("[Chat API route error]", err);
-    return res.status(500).json({ error: "Failed to reach Watson Assistant" });
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    return res.status(500).json({
+      error: isTimeout
+        ? "Watson Assistant is taking too long to respond. IBM AskSales may be experiencing slowness — please try again in a moment."
+        : "Failed to reach Watson Assistant. Check /api/diag for connectivity status.",
+    });
   }
 }

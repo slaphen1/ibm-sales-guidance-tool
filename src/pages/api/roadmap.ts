@@ -103,7 +103,12 @@ export default async function handler(
     return res.status(200).json(roadmap);
   } catch (err) {
     console.error("[Roadmap API route error]", err);
-    return res.status(500).json({ error: "Failed to generate client roadmap" });
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    return res.status(500).json({
+      error: isTimeout
+        ? "Watson Assistant timed out generating the roadmap. IBM AskSales may be experiencing slowness — please try again in a few minutes."
+        : "Failed to generate client roadmap. Check /api/diag for connectivity status.",
+    });
   }
 }
 

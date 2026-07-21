@@ -93,18 +93,29 @@ export default async function handler(
     });
     clearTimeout(t);
     const body = await watsonRes.text();
+    const ms = Date.now() - watsonStart;
     results.watson = {
       ok: watsonRes.ok,
       status: watsonRes.status,
-      ms: Date.now() - watsonStart,
+      ms,
+      // Warn if even a simple "ping" is slow — likely indicates an AskSales service issue
+      latencyWarning: ms > 8000
+        ? "Ping response exceeded 8s — Watson Assistant / AskSales may be degraded. IBM product queries are most affected."
+        : ms > 4000
+          ? "Ping response is slower than usual (>4s). Monitor for timeouts on complex queries."
+          : null,
       bodyPreview: body.slice(0, 300),
     };
   } catch (e) {
+    const ms = Date.now() - watsonStart;
     results.watson = {
       ok: false,
       error: e instanceof Error ? e.message : String(e),
       errorName: e instanceof Error ? e.name : "unknown",
-      ms: Date.now() - watsonStart,
+      ms,
+      latencyWarning: ms >= 20000
+        ? "Diag timed out after 20s — Watson Assistant is not responding. Check IBM status page: https://cloud.ibm.com/status"
+        : null,
     };
   }
 
