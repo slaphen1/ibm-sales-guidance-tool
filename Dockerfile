@@ -1,25 +1,27 @@
 # ── Base stage ────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS base
 WORKDIR /app
-ENV NODE_ENV=production
 
-# ── Dependencies stage ────────────────────────────────────────────────────────
+# ── Dependencies stage (production deps only) ─────────────────────────────────
 FROM base AS deps
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 
-# ── Builder stage ─────────────────────────────────────────────────────────────
+# ── Builder stage (all deps including devDependencies) ────────────────────────
 FROM base AS builder
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
+# Install ALL dependencies (including devDeps like typescript, next, etc.)
 RUN npm ci
 COPY . .
-
 # Build the Next.js app
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ── Runner stage ──────────────────────────────────────────────────────────────
 FROM base AS runner
 WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
